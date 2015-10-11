@@ -1,0 +1,9 @@
+# Ignore everything
+*
+
+# Except
+!.gitignore
+!*.py
+!E_ij.mat
+!digits
+!digits/*
