@@ -98,23 +98,14 @@ plt.xlabel('d')
 plt.ylabel('Reconstruction error')
 
 #%% Implement K-Means
-'''
-Implement a K-Means algorithm
-Must follow syntax kmeans(data, k, iterations) -> centroids, energy
-where trainset has shape (n, d)
-centroids have shape (k, d)
-and energy = 1/n sum(nn) ||x_nn = c_{assign_nn}||**2
 
-hint: look into np.random.choice
-'''
-
-# <HW>
+# <HW*>
 def find_closest(data, centroids):
     '''
     Return
         (assign, distance)
-        assign: closest centroid to each sample
-        distance: corresponding distance
+        assign -- (nsamples) index of closest centroid to each sample
+        distance -- (nsamples) corresponding distance
     
     '''
     assign = np.zeros(data.shape[0], dtype=int)
@@ -125,19 +116,42 @@ def find_closest(data, centroids):
         assign[nn] = np.argmin(sample_to_centroids)
         distance[nn] = sample_to_centroids[assign[nn]]
     return assign, distance
+# </HW*>
     
 def kmeans_energy(data, centroids):
     '''
-    Given data and centroids, return K-Means energy
+    Given data and centroids, return normalized K-Means energy
+    E = 1/n sum(nn) ||x_n - c_{k_assign_nn}|| ^ 2
+    
+    data -- (nsamples x ndims) data to cluster
+    centroids -- (nclusters x ndims) centroids
     '''
+    # <HW>
     assign, distance = find_closest(data, centroids)
-    return np.sum(distance)
-    return energy
+    return np.mean(distance)
+    # </HW>
     
 def kmeans(data, k, iterations, verbose=False):
     '''
     Cluster data into k clusters using K-Means. 
     '''
+    '''
+    Cluster data into k clusters using K-Means. 
+
+    Return
+        (centroids, energy) 
+    where
+        centroids -- (nclusters x dim) centroids found
+        energy -- value of kmeans_energy(data, centroid)
+        
+    Parameters
+        data -- (nsamples x ndims) data to cluster
+        k -- number of clusters
+        iterations -- number of iterations per call to k-means
+        repeat -- number of calls to k-means
+        verbose -- print info
+    '''
+    # <HW>
     # Initialize centroids randomly
     centroids_idx = np.random.choice(np.arange(data.shape[0]), size=k, replace=False)
     centroids = np.asarray([data[idx] for idx in centroids_idx])
@@ -150,15 +164,25 @@ def kmeans(data, k, iterations, verbose=False):
         # Maximization: Recompute centroids
         for kk, __ in enumerate(centroids):
             centroids[kk] = np.dot(assign==kk, data) / np.sum(assign==kk)
+    # </HW>
     return centroids, kmeans_energy(data, centroids)
-# </HW>    
 
-#%% [HW] K-Means for K=2
+
+#%% K-Means for K=2
 centroids, energy = kmeans(train, 2, 10, verbose=True)
 
 #%% Repeat 10 times K-Means
-# <HW>
 def kmeans_repeat(data, k, iterations, repeat, verbose=False):
+    '''
+    Repeat kmeans *repeat* times (call kmeans), keep best result
+    
+    data -- (nsamples x ndims) data to cluster
+    k -- number of clusters
+    iterations -- number of iterations per call to k-means
+    repeat -- number of calls to k-means
+    verbose -- print info
+    '''
+    # <HW>
     best_centroids, best_energy = None, None
     for r in xrange(repeat):
         centroids, energy = kmeans(data, k, iterations)
@@ -167,39 +191,29 @@ def kmeans_repeat(data, k, iterations, repeat, verbose=False):
         if verbose:
             print 'Repeat {} Energy {}'.format(r, energy)
     return best_centroids, best_energy
-# </HW>
+    # </HW>
 
 centroids, energy = kmeans_repeat(train, 2, 10, 10, verbose=True)
 plt.figure('2 K-Means Clusters')
 show_images(c1=centroids[0].reshape((28, 28)), c2=centroids[1].reshape((28, 28)))
 
 
-#%%
+#%% Distortion cost for each value of K
 ks = [3, 4, 5, 10, 50, 100]
-ks = [3, 10]  # testing
 
 errors = []
 plt.figure('K-Means Reconstruction')
-for k in xrange(1, 11):
-    # <HW>
+for k in ks:
     centroids, train_error = kmeans(train, k, 10)
-    test_assign, test_error = find_closest(test, centroids)
-    reconstructed_example = centroids[test_assign[9]]
-    # </HW>
-        
-    plt.subplot(3, 4, 1+d)
-    plt.imshow(reconstructed_example.reshape((28, 28)))
-    plt.title('d={}'.format(1))
-    errors.append(test_error)
-    print 'PCA {} components, error {}'.format(d, error)
+    error = kmeans_energy(test, centroids)
+    errors.append(error)
+    print 'K-Means {} clusters, error {}'.format(k, error)
 plt.figure('K-Means approximation error')
-plt.plot(np.arange(1, 11), errors)
+plt.plot(ks, errors)
 plt.xlabel('k number of clusters')
-plt.ylabel('Energy')
+plt.ylabel('Energy/Distortion')
+plt.draw()
 
-for k in xrange(1, 11):
-    centroids = kmeans(train, 50, 10)
-    
 
 #%% For console python only
 plt.show()
