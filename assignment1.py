@@ -126,7 +126,7 @@ def find_closest(data, centroids):
         distance[nn] = sample_to_centroids[assign[nn]]
     return assign, distance
     
-def energy(data, centroids):
+def kmeans_energy(data, centroids):
     '''
     Given data and centroids, return K-Means energy
     '''
@@ -150,7 +150,7 @@ def kmeans(data, k, iterations, verbose=False):
         # Maximization: Recompute centroids
         for kk, __ in enumerate(centroids):
             centroids[kk] = np.dot(assign==kk, data) / np.sum(assign==kk)
-    return centroids, energy(data, centroids)
+    return centroids, kmeans_energy(data, centroids)
 # </HW>    
 
 #%% [HW] K-Means for K=2
@@ -175,13 +175,11 @@ show_images(c1=centroids[0].reshape((28, 28)), c2=centroids[1].reshape((28, 28))
 
 
 #%%
-ks = []
-example = 9
+ks = [3, 4, 5, 10, 50, 100]
+ks = [3, 10]  # testing
+
 errors = []
 plt.figure('K-Means Reconstruction')
-plt.subplot(3, 4, 1)
-plt.imshow(test[example].reshape((28, 28)))
-plt.title('Original')
 for k in xrange(1, 11):
     # <HW>
     centroids, train_error = kmeans(train, k, 10)
