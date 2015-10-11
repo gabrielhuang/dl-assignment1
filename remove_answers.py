@@ -14,16 +14,24 @@ tags
 2. Replace with
 # <PUT YOUR CODE HERE>
 tags
+
+3. Same WITHOUT replace for all code between
+# <HW*>
+and 
+# </HW*>
+tags
 '''
 
 BEGIN = '#<HW>'
 END = '#</HW>'
+BEGIN_STAR = '#<HW*>'
+END_STAR = '#</HW*>'
 REPLACEMENT = [
-'#',
+'',
 '# **********************',
 '# * PUT YOUR CODE HERE *',
 '# **********************',
-'#']
+'']
 
 
 import sys
@@ -35,7 +43,7 @@ def get_prefix(line):
 
 def get_replacement(prefix):
     repl = [prefix + r for r in REPLACEMENT]
-    return '\n'.join(repl)
+    return '\n'.join(repl + [''])
     
 try:
     f = open(sys.argv[1])
@@ -45,19 +53,22 @@ except:
     
     
 in_hw = False
+is_star = False
 for line_number, line in enumerate(f):
-    no_space = ''.join(line.split())
-    if no_space == BEGIN:
+    no_space = ''.join(line.split()).upper()
+    if no_space in (BEGIN, BEGIN_STAR):
         if in_hw:
             raise Exception('LINE {}: {}\nUnexpected BEGIN'.format(line_number, line) )
         else:
             in_hw = True
             prefix = get_prefix(line)
-    elif no_space == END:
+            is_star = (no_space == BEGIN_STAR)
+    elif no_space in (END, END_STAR):
         if not in_hw:
             raise Exception('LINE {}: {}\nUnexpected END'.format(line_number, line))
         else:
             in_hw = False
-            sys.stdout.write(get_replacement(prefix))
+            if not is_star:
+                sys.stdout.write(get_replacement(prefix))
     elif not in_hw:
         sys.stdout.write(line)
