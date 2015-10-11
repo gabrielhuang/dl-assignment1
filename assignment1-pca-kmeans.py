@@ -81,12 +81,12 @@ plt.subplot(3, 4, 1)
 plt.imshow(test[example].reshape((28, 28)))
 plt.title('Original')
 for d in xrange(1, 11):
+    # Set error = ... below    
     # <HW>
     coeffs = np.dot(test - meanDigit, eigvec[:, :d])
     reconstructed = meanDigit + np.dot(coeffs, eigvec[:, :d].T)
     error = np.mean(np.sqrt(np.sum((reconstructed-test)**2, axis=1)))
     # </HW>
-        
     plt.subplot(3, 4, 1+d)
     plt.imshow(reconstructed[example].reshape((28, 28)))
     plt.title('d={}'.format(1))
@@ -204,7 +204,11 @@ ks = [3, 4, 5, 10, 50, 100]
 errors = []
 plt.figure('K-Means Reconstruction')
 for k in ks:
-    centroids, train_error = kmeans(train, k, 10)
+    # <HW*>
+    # This is super slow, better test using
+    # centroids, train_error = kmeans(train, k, 10)
+    # </HW*>
+    centroids, train_error = kmeans_repeat(train, k, 10, 10)
     error = kmeans_energy(test, centroids)
     errors.append(error)
     print 'K-Means {} clusters, error {}'.format(k, error)
